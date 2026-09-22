@@ -4,6 +4,10 @@ namespace Blaspsoft\Blasp\Core\Matchers;
 
 class FalsePositiveFilter
 {
+    // Unicode word character: letters, digits, underscore and combining marks.
+    // PCRE's \w (even with /u) excludes marks, which breaks Devanagari vowel signs.
+    private const WORD_CHAR = '[\p{L}\p{N}\p{M}_]';
+
     private array $falsePositivesMap;
 
     public function __construct(array $falsePositives)
@@ -77,14 +81,14 @@ class FalsePositiveFilter
 
         if ($matchStartChar > 0) {
             $charBefore = mb_substr($fullString, $matchStartChar - 1, 1, 'UTF-8');
-            if (preg_match('/\w/u', $charBefore)) {
+            if (preg_match('/' . self::WORD_CHAR . '/u', $charBefore)) {
                 $embeddedAtStart = true;
             }
         }
 
         if ($matchEndChar < mb_strlen($fullString, 'UTF-8')) {
             $charAfter = mb_substr($fullString, $matchEndChar, 1, 'UTF-8');
-            if (preg_match('/\w/u', $charAfter)) {
+            if (preg_match('/' . self::WORD_CHAR . '/u', $charAfter)) {
                 $embeddedAtEnd = true;
             }
         }
@@ -127,12 +131,13 @@ class FalsePositiveFilter
         $left = $start;
         $right = $start + $length;
 
-        while ($left > 0 && preg_match('/\w/', $string[$left - 1])) {
-            $left--;
+        // Extend across multibyte word characters on both sides ($start/$length are byte offsets)
+        if (preg_match('/' . self::WORD_CHAR . '+$/u', substr($string, 0, $start), $m)) {
+            $left -= strlen($m[0]);
         }
 
-        while ($right < strlen($string) && preg_match('/\w/', $string[$right])) {
-            $right++;
+        if (preg_match('/^' . self::WORD_CHAR . '+/u', substr($string, $right), $m)) {
+            $right += strlen($m[0]);
         }
 
         return substr($string, $left, $right - $left);

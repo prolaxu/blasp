@@ -89,7 +89,13 @@ class RegexMatcher
                 }
             }
             if (!$matched) {
-                $expression .= preg_quote(mb_substr($profanity, $i, 1, 'UTF-8'), '/');
+                $char = mb_substr($profanity, $i, 1, 'UTF-8');
+                $expression .= preg_quote($char, '/');
+                // Letters and combining marks with no substitution entry (e.g. Devanagari)
+                // still get separator tolerance so "मा-दर-चोद" matches like "f-u-c-k"
+                if (preg_match('/^[\p{L}\p{M}]$/u', $char)) {
+                    $expression .= self::SEPARATOR_PLACEHOLDER;
+                }
                 $i++;
             }
         }
