@@ -8,7 +8,7 @@ All notable changes to `blasp` will be documented in this file
 - Hindi and Nepali language support (`Blasp::hindi()`, `Blasp::nepali()`), each covering Devanagari and romanized text with severity maps
 - `DevanagariNormalizer` (chandrabindu → anusvara, precomposed nukta consonants → base, Devanagari digits → ASCII)
 - Devanagari substitutions for nukta, short/long vowel signs and common consonant swaps; romanized substitutions for u/oo, i/ee, v/w, z/j, f/ph
-- Missing profanities in the English, Spanish, French, German, Hindi, and Nepali lists, including spaced spellings and common romanized variants the existing entries did not already match
+- Missing profanities in the English, Spanish, French, German, Hindi, and Nepali lists, including spaced spellings, obfuscated slurs (`fcuk`, `niqqer`), hate terms (`kkk`, `sieg heil`, `neonazi`) and common romanized variants the existing entries did not already match
 - `safe_words` list in the installed application's `config/blasp.php` (and in a published language file) for words that must never be flagged
 - Homoglyph folding (`blasp.homoglyphs`, on by default): Cyrillic and Greek lookalikes, fullwidth letters and accented letters missing from the substitution table are folded before matching, so `fuсk` and `ｆｕｃｋ` are detected while the original text is what gets masked
 - `substitutions_append` config for merging an application's own characters into the default substitution table without copying it

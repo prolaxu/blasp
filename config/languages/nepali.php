@@ -60,7 +60,7 @@ $severity = [
         'मादरचोद', 'चूतिया', 'बहनचोद',
         'रण्डीको छोरी', 'रन्डीको छोरी', 'रंडीको छोरी',
         // Romanized
-        'muji', 'muji khate', 'mujikhate',
+        'muji', 'mujee', 'muzi', 'muji khate', 'mujikhate',
         'machikne', 'machikni', 'machikna',
         'chiknu', 'chikne', 'chikeko', 'chikyo',
         'ama chikne', 'tero ama chikne', 'bau chikne', 'bahini chikne', 'didi chikne',

@@ -24,6 +24,7 @@ return [
             'dumbfuck', 'fuckwit', 'shitbag', 'shitcunt',
             'thundercunt', 'cum', 'jizz', 'dildo', 'blowjob',
             'handjob', 'rimjob', 'fellatio', 'cunnilingus',
+            'fcuk',
         ],
         'extreme' => [
             'nigger', 'nigga', 'niggers', 'niggas', 'coon', 'darkie',
@@ -32,6 +33,7 @@ return [
             'gringo', 'wop', 'dago', 'polack', 'retard', 'retarded',
             'faggot', 'fag', 'dyke', 'tranny',
             'pedophile', 'poof', 'shemale', 'spastic', 'white power',
+            'niqqer', 'niqqa', 'kkk', 'sieg heil', 'neonazi',
         ],
     ],
 
@@ -1407,6 +1409,12 @@ return [
         'tushy',
         'white power',
         'zoophilia',
+        'fcuk',
+        'niqqer',
+        'niqqa',
+        'kkk',
+        'sieg heil',
+        'neonazi',
     ],
     
     'false_positives' => [
