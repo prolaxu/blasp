@@ -111,9 +111,9 @@ Blasp::withSeverity(Severity::High)->check($text);  // Ignores mild/moderate
 Blasp::allow('damn', 'hell')->check($text);
 Blasp::block('customword')->check($text);
 
-// Reserved words live in the installed app's config/blasp.php and are
-// never flagged, without publishing the language files:
-// 'reserve' => ['acme', 'damn'],
+// Safe words live in the installed app's config/blasp.php and are never
+// flagged, without publishing the language files:
+// 'safe_words' => ['acme', 'damn'],
 
 // Chain everything
 Blasp::spanish()
@@ -423,12 +423,14 @@ return [
         ],
     ],
 
-    'reserve' => [],   // Installed-app words that are never flagged
-    'allow'  => [],    // Global allow-list
-    'block'  => [],    // Global block-list
+    'safe_words' => [], // Installed-app words that are never flagged
+    'allow'  => [],     // Global allow-list
+    'block'  => [],     // Global block-list
 
     'separators'      => [...],  // Characters treated as separators
     'substitutions'   => [...],  // Character leet-speak mappings
+    'substitutions_append' => [], // App additions merged into the table above
+    'homoglyphs'      => true,   // Fold Cyrillic/Greek/fullwidth lookalikes before matching
     'false_positives' => [...],  // Words that should never be flagged
 ];
 ```

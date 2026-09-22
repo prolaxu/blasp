@@ -10,6 +10,7 @@ use Blaspsoft\Blasp\Core\Normalizers\SpanishNormalizer;
 use Blaspsoft\Blasp\Core\Normalizers\GermanNormalizer;
 use Blaspsoft\Blasp\Core\Normalizers\FrenchNormalizer;
 use Blaspsoft\Blasp\Core\Normalizers\DevanagariNormalizer;
+use Blaspsoft\Blasp\Core\Normalizers\HomoglyphNormalizer;
 use Illuminate\Support\Facades\Cache;
 
 class Dictionary
@@ -23,6 +24,7 @@ class Dictionary
     private array $severityMap;
     private array $profanityExpressions;
     private StringNormalizer $normalizer;
+    private ?HomoglyphNormalizer $foldingNormalizer = null;
     private array $allowList;
     private array $blockList;
     private string $language;
@@ -96,7 +98,7 @@ class Dictionary
         $globalConfig = self::loadGlobalConfig();
 
         $profanities = $config['profanities'] ?? [];
-        $falsePositives = self::mergeReservedWords($config['false_positives'] ?? [], $config);
+        $falsePositives = self::mergeSafeWords($config['false_positives'] ?? [], $config);
         $severityMap = self::buildSeverityMap($config);
 
         $substitutions = $globalConfig['substitutions'] ?? [];
@@ -118,7 +120,7 @@ class Dictionary
             substitutions: $substitutions,
             severityMap: $severityMap,
             normalizer: self::getNormalizerForLanguage($language),
-            allowList: self::mergeReservedWords($options['allow'] ?? [], $config),
+            allowList: self::mergeSafeWords($options['allow'] ?? [], $config),
             blockList: $options['block'] ?? [],
             language: $language,
         );
@@ -138,7 +140,7 @@ class Dictionary
             }
             $config = self::loadLanguageConfig($language);
             $allProfanities = array_merge($allProfanities, $config['profanities'] ?? []);
-            $allFalsePositives = array_merge($allFalsePositives, self::mergeReservedWords($config['false_positives'] ?? [], $config));
+            $allFalsePositives = array_merge($allFalsePositives, self::mergeSafeWords($config['false_positives'] ?? [], $config));
             $allSeverityMap = array_merge($allSeverityMap, self::buildSeverityMap($config));
 
             // Merge accent/diacritic substitutions only
@@ -165,7 +167,7 @@ class Dictionary
             substitutions: $substitutions,
             severityMap: $allSeverityMap,
             normalizer: self::getNormalizerForLanguage('english'),
-            allowList: self::mergeReservedWords($options['allow'] ?? []),
+            allowList: self::mergeSafeWords($options['allow'] ?? []),
             blockList: $options['block'] ?? [],
             language: implode(',', $languages),
         );
@@ -198,9 +200,18 @@ class Dictionary
         return $this->severityMap[$lower] ?? Severity::High;
     }
 
+    /**
+     * The normalizer drivers run the text through before matching: the
+     * language's own, wrapped in homoglyph folding unless `blasp.homoglyphs`
+     * is off.
+     */
     public function getNormalizer(): StringNormalizer
     {
-        return $this->normalizer;
+        if (!config('blasp.homoglyphs', true)) {
+            return $this->normalizer;
+        }
+
+        return $this->foldingNormalizer ??= new HomoglyphNormalizer($this->normalizer);
     }
 
     public function getLanguage(): string
@@ -284,20 +295,20 @@ class Dictionary
     }
 
     /**
-     * Words from the installed app's config('blasp.reserve') and, when
-     * present, the language file's own 'reserve' list.
+     * Words from the installed app's config('blasp.safe_words') and, when
+     * present, the language file's own 'safe_words' list.
      *
      * @param  array<int, string>  $words
      * @return array<int, string>
      */
-    private static function mergeReservedWords(array $words, array $languageConfig = []): array
+    private static function mergeSafeWords(array $words, array $languageConfig = []): array
     {
-        $reserved = array_merge(
-            $languageConfig['reserve'] ?? [],
-            config('blasp.reserve', [])
+        $safeWords = array_merge(
+            $languageConfig['safe_words'] ?? [],
+            config('blasp.safe_words', [])
         );
 
-        foreach ($reserved as $word) {
+        foreach ($safeWords as $word) {
             if (!is_string($word)) {
                 continue;
             }
@@ -316,9 +327,33 @@ class Dictionary
     {
         return [
             'separators' => config('blasp.separators', config('blasp.drivers.regex.separators', [])),
-            'substitutions' => config('blasp.substitutions', config('blasp.drivers.regex.substitutions', [])),
+            'substitutions' => self::mergeSubstitutions(
+                config('blasp.substitutions', config('blasp.drivers.regex.substitutions', [])),
+                config('blasp.substitutions_append', [])
+            ),
             'false_positives' => config('blasp.false_positives', []),
         ];
+    }
+
+    /**
+     * $base with the characters of $extra added per letter, so an app can
+     * add a few substitutions in its published config without copying the
+     * whole table.
+     *
+     * @param  array<string, array<int, string>>  $base
+     * @param  array<string, array<int, string>>  $extra
+     * @return array<string, array<int, string>>
+     */
+    public static function mergeSubstitutions(array $base, array $extra): array
+    {
+        foreach ($extra as $pattern => $values) {
+            if (!is_array($values)) {
+                continue;
+            }
+            $base[$pattern] = array_values(array_unique(array_merge($base[$pattern] ?? [], $values)));
+        }
+
+        return $base;
     }
 
     private static function buildSeverityMap(array $config): array

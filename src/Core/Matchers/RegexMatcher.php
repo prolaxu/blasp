@@ -31,7 +31,7 @@ class RegexMatcher
 
         $pattern = $this->generateEscapedExpression($normalSeparators, self::ESCAPED_SEPARATOR_CHARACTERS, '');
 
-        return '(?:' . $pattern . '|\.(?=\w)){0,3}?';
+        return '(?:' . $pattern . '|\.(?=[\p{L}\p{N}\p{M}_])){0,3}?';
     }
 
     public function generateSubstitutionExpressions(array $substitutions): array
@@ -90,6 +90,17 @@ class RegexMatcher
             }
             if (!$matched) {
                 $char = mb_substr($profanity, $i, 1, 'UTF-8');
+                // A space in a phrase entry ("sieg heil") is a separator slot,
+                // not a literal: the phrase must also match hyphenated or run
+                // together ("sieg-heil", "siegheil"). The preceding letter
+                // already carries a slot, so one is only added when it does not.
+                if (preg_match('/^\s$/u', $char)) {
+                    if (!str_ends_with($expression, self::SEPARATOR_PLACEHOLDER)) {
+                        $expression .= self::SEPARATOR_PLACEHOLDER;
+                    }
+                    $i++;
+                    continue;
+                }
                 $expression .= preg_quote($char, '/');
                 // Letters and combining marks with no substitution entry (e.g. Devanagari)
                 // still get separator tolerance so "मा-दर-चोद" matches like "f-u-c-k"

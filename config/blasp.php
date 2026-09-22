@@ -141,6 +141,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Homoglyph Folding
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, characters that imitate Latin letters — Cyrillic and
+    | Greek lookalikes, fullwidth letters and accented letters missing from
+    | the substitution table — are folded to the letter they imitate before
+    | matching, so "fuсk" (Cyrillic с) or "ｆｕｃｋ" is caught. The original
+    | text is what gets masked; only the matching sees the folded form.
+    |
+    */
+    'homoglyphs' => true,
+
+    /*
+    |--------------------------------------------------------------------------
     | Character Separators
     |--------------------------------------------------------------------------
     */
@@ -167,7 +181,7 @@ return [
         '/i/' => ['i', '!', '|', ']', '[', '1', '*', '∫', 'Ì', 'Í', 'Î', 'Ï', 'ì', 'í', 'î', 'ï', 'ī', 'Ī', 'į', 'Į'],
         '/j/' => ['j', '*'],
         '/k/' => ['k', '*', 'Κ', 'κ'],
-        '/l/' => ['l', '!', '|', ']', '[', '*', '£', '∫', 'Ì', 'Í', 'Î', 'Ï', 'ł', 'Ł'],
+        '/l/' => ['l', '1', '!', '|', ']', '[', '*', '£', '∫', 'Ì', 'Í', 'Î', 'Ï', 'ł', 'Ł'],
         '/m/' => ['m', '*'],
         '/n/' => ['n', '*', 'η', 'Ν', 'Π', 'ñ', 'Ñ', 'ń', 'Ń'],
         '/o/' => ['o', '0', '*', 'Ο', 'ο', 'Φ', '¤', '°', 'ø', 'ô', 'Ô', 'ö', 'Ö', 'ò', 'Ò', 'ó', 'Ó', 'œ', 'Œ', 'ø', 'Ø', 'ō', 'Ō', 'õ', 'Õ'],
@@ -175,14 +189,26 @@ return [
         '/q/' => ['q', '*'],
         '/r/' => ['r', '*', '®'],
         '/s/' => ['s', '5', '*', '\$', '§', 'ß', 'Ś', 'ś', 'Š', 'š'],
-        '/t/' => ['t', '*', 'Τ', 'τ'],
+        '/t/' => ['t', '7', '+', '*', 'Τ', 'τ'],
         '/u/' => ['u', 'υ', 'µ', 'û', 'ü', 'ù', 'ú', 'ū', 'Û', 'Ü', 'Ù', 'Ú', 'Ū', '@', '*'],
         '/v/' => ['v', '*', 'υ', 'ν'],
         '/w/' => ['w', '*', 'ω', 'ψ', 'Ψ'],
         '/x/' => ['x', '*', 'Χ', 'χ'],
         '/y/' => ['y', '*', '¥', 'γ', 'ÿ', 'ý', 'Ÿ', 'Ý'],
-        '/z/' => ['z', '*', 'Ζ', 'ž', 'Ž', 'ź', 'Ź', 'ż', 'Ż'],
+        '/z/' => ['z', '2', '*', 'Ζ', 'ž', 'Ž', 'ź', 'Ź', 'ż', 'Ż'],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Appended Character Substitutions
+    |--------------------------------------------------------------------------
+    |
+    | Substitutions appended to the table above, keyed the same way. Set
+    | this in the published config to extend the defaults without copying
+    | the whole table; the characters are merged per letter.
+    |
+    */
+    'substitutions_append' => [],
 
     /*
     |--------------------------------------------------------------------------
@@ -196,6 +222,23 @@ return [
         'countryside', 'arsenal', 'flick', 'flicker', 'analyst',
         'cocktail', 'musicals hit', 'is hit', 'blackcocktail', 'its not',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Safe Words
+    |--------------------------------------------------------------------------
+    |
+    | Words the installed application must never flag. Set this in the
+    | published config/blasp.php; it is applied on top of the package
+    | language files, so those files do not need to be copied.
+    |
+    | A published language file may also return its own 'safe_words' list.
+    | Both are merged. Matching profanity entries are dropped, and the
+    | words are treated as false positives so they are not masked when
+    | they contain a shorter profanity ("vacuum", "scunthorpe").
+    |
+    */
+    'safe_words' => [],
 
     /*
     |--------------------------------------------------------------------------
