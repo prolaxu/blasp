@@ -16,7 +16,7 @@ Blasp is a powerful, extensible profanity filter for Laravel. Version 4 is a gro
 ## Features
 
 - **Driver Architecture** — `regex` (detects obfuscation, substitutions, separators), `pattern` (fast exact matching), `phonetic` (catches sound-alike evasions), or `pipeline` (chains multiple drivers together). Extend with custom drivers.
-- **Multi-Language** — English, Spanish, German, French with language-specific normalizers. Check one, many, or all at once.
+- **Multi-Language** — English, Spanish, German, French, Hindi and Nepali with language-specific normalizers. Hindi and Nepali cover both Devanagari and romanized text. Check one, many, or all at once.
 - **Severity Scoring** — Words categorised as mild/moderate/high/extreme. Filter by minimum severity and get a 0-100 score.
 - **Masking Strategies** — Character mask (`*`, `#`), grawlix (`!@#$%`), or a custom callback.
 - **Eloquent Integration** — `Blaspable` trait auto-sanitizes or rejects profanity on model save.
@@ -80,6 +80,8 @@ Blasp::english()->check($text);
 Blasp::spanish()->check($text);
 Blasp::german()->check($text);
 Blasp::french()->check($text);
+Blasp::hindi()->check($text);
+Blasp::nepali()->check($text);
 
 // Driver selection
 Blasp::driver('regex')->check($text);     // Full obfuscation detection (default)
@@ -108,6 +110,10 @@ Blasp::withSeverity(Severity::High)->check($text);  // Ignores mild/moderate
 // Allow/block lists (merged with config)
 Blasp::allow('damn', 'hell')->check($text);
 Blasp::block('customword')->check($text);
+
+// Reserved words live in the installed app's config/blasp.php and are
+// never flagged, without publishing the language files:
+// 'reserve' => ['acme', 'damn'],
 
 // Chain everything
 Blasp::spanish()
@@ -154,6 +160,21 @@ The regex driver detects obfuscated profanity:
 > **Separator limit:** The regex driver allows up to 3 separator characters between each letter (e.g., `f--u--c--k`). This covers all realistic obfuscation patterns while keeping regex complexity low enough for PHP-FPM environments.
 
 The pattern driver only detects straight word-boundary matches.
+
+### Hindi & Nepali
+
+Both languages ship with Devanagari *and* romanized (Latin-script) word lists, so `tu chutiya hai` and `तू चूतिया है` are both caught. On top of the standard obfuscation handling, the following spelling variations are matched automatically:
+
+| Variation | Example | Matches |
+|-----------|---------|---------|
+| Nukta present / absent / precomposed | `भोसड़ी`, `भोसडी` | `भोसडी` |
+| Chandrabindu vs anusvara | `गाँड`, `गांड` | `गांड` |
+| Short vs long vowel signs | `चुतिया`, `चूतिया` | `चूतिया` |
+| Separated characters | `मा-दर-चोद` | `मादरचोद` |
+| Romanized vowels | `chootiya`, `chuteeya`, `mooji` | `chutiya`, `muji` |
+| Romanized consonants | `bhadva`/`bhadwa`, `haramjada`, `phuddu` | `bhadwa`, `haramzada`, `fuddu` |
+
+A few words are intentionally left out because they collide with everyday words (`chakka` is also a cricket six, caste/ethnic terms double as community names). Add them per-project with `Blasp::block(...)` or the `block` config key.
 
 The phonetic driver uses `metaphone()` + Levenshtein distance to catch words that *sound like* profanity but are spelled differently:
 
@@ -402,6 +423,7 @@ return [
         ],
     ],
 
+    'reserve' => [],   // Installed-app words that are never flagged
     'allow'  => [],    // Global allow-list
     'block'  => [],    // Global block-list
 

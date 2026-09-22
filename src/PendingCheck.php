@@ -146,6 +146,16 @@ class PendingCheck
         return $this->in('french');
     }
 
+    public function hindi(): self
+    {
+        return $this->in('hindi');
+    }
+
+    public function nepali(): self
+    {
+        return $this->in('nepali');
+    }
+
     // --- Configure (backward-compat) ---
 
     public function configure(?array $profanities = null, ?array $falsePositives = null): self
@@ -297,6 +307,7 @@ class PendingCheck
             'all_languages' => $this->allLanguages,
             'allow' => $this->allowList,
             'block' => $this->blockList,
+            'reserve' => config('blasp.reserve', []),
             'severity' => $this->minimumSeverity?->value,
             'strict' => $this->strictMode,
             'lenient' => $this->lenientMode,

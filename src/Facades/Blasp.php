@@ -27,6 +27,8 @@ use Illuminate\Support\Facades\Facade as BaseFacade;
  * @method static PendingCheck spanish()
  * @method static PendingCheck german()
  * @method static PendingCheck french()
+ * @method static PendingCheck hindi()
+ * @method static PendingCheck nepali()
  * @method static PendingCheck maskWith(string $character)
  * @method static PendingCheck allLanguages()
  * @method static PendingCheck language(string $language)

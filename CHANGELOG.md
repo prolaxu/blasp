@@ -2,6 +2,20 @@
 
 All notable changes to `blasp` will be documented in this file
 
+## Unreleased
+
+### Added
+- Hindi and Nepali language support (`Blasp::hindi()`, `Blasp::nepali()`), each covering Devanagari and romanized text with severity maps
+- `DevanagariNormalizer` (chandrabindu → anusvara, precomposed nukta consonants → base, Devanagari digits → ASCII)
+- Devanagari substitutions for nukta, short/long vowel signs and common consonant swaps; romanized substitutions for u/oo, i/ee, v/w, z/j, f/ph
+- Missing profanities in the English, Spanish, French, German, Hindi, and Nepali lists, including spaced spellings and common romanized variants the existing entries did not already match
+- `reserve` list in the installed application's `config/blasp.php` (and in a published language file) for words that must never be flagged
+
+### Fixed
+- Regex driver now allows separators between letters that have no substitution entry (e.g. Devanagari), so `मा-दर-चोद` is detected like `f-u-c-k`
+- Pattern driver word boundaries are now Unicode-aware; `\b` treated Devanagari vowel signs as non-word characters so words ending in a matra never matched
+- False-positive word context is now Unicode-aware, so multibyte words like `लंडन` can be allow-listed against `लंड`
+
 ## 3.0.0 - 2025-01-05
 
 ### Added

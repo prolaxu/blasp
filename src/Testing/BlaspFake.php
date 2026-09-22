@@ -97,6 +97,16 @@ class BlaspFake
         return $this;
     }
 
+    public function hindi(): self
+    {
+        return $this;
+    }
+
+    public function nepali(): self
+    {
+        return $this;
+    }
+
     public function mask(string $mask): self
     {
         return $this;

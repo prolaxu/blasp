@@ -9,6 +9,7 @@ use Blaspsoft\Blasp\Core\Normalizers\EnglishNormalizer;
 use Blaspsoft\Blasp\Core\Normalizers\SpanishNormalizer;
 use Blaspsoft\Blasp\Core\Normalizers\GermanNormalizer;
 use Blaspsoft\Blasp\Core\Normalizers\FrenchNormalizer;
+use Blaspsoft\Blasp\Core\Normalizers\DevanagariNormalizer;
 use Illuminate\Support\Facades\Cache;
 
 class Dictionary
@@ -95,7 +96,7 @@ class Dictionary
         $globalConfig = self::loadGlobalConfig();
 
         $profanities = $config['profanities'] ?? [];
-        $falsePositives = $config['false_positives'] ?? [];
+        $falsePositives = self::mergeReservedWords($config['false_positives'] ?? [], $config);
         $severityMap = self::buildSeverityMap($config);
 
         $substitutions = $globalConfig['substitutions'] ?? [];
@@ -117,7 +118,7 @@ class Dictionary
             substitutions: $substitutions,
             severityMap: $severityMap,
             normalizer: self::getNormalizerForLanguage($language),
-            allowList: $options['allow'] ?? [],
+            allowList: self::mergeReservedWords($options['allow'] ?? [], $config),
             blockList: $options['block'] ?? [],
             language: $language,
         );
@@ -137,7 +138,7 @@ class Dictionary
             }
             $config = self::loadLanguageConfig($language);
             $allProfanities = array_merge($allProfanities, $config['profanities'] ?? []);
-            $allFalsePositives = array_merge($allFalsePositives, $config['false_positives'] ?? []);
+            $allFalsePositives = array_merge($allFalsePositives, self::mergeReservedWords($config['false_positives'] ?? [], $config));
             $allSeverityMap = array_merge($allSeverityMap, self::buildSeverityMap($config));
 
             // Merge accent/diacritic substitutions only
@@ -164,7 +165,7 @@ class Dictionary
             substitutions: $substitutions,
             severityMap: $allSeverityMap,
             normalizer: self::getNormalizerForLanguage('english'),
-            allowList: $options['allow'] ?? [],
+            allowList: self::mergeReservedWords($options['allow'] ?? []),
             blockList: $options['block'] ?? [],
             language: implode(',', $languages),
         );
@@ -282,6 +283,35 @@ class Dictionary
         return $config;
     }
 
+    /**
+     * Words from the installed app's config('blasp.reserve') and, when
+     * present, the language file's own 'reserve' list.
+     *
+     * @param  array<int, string>  $words
+     * @return array<int, string>
+     */
+    private static function mergeReservedWords(array $words, array $languageConfig = []): array
+    {
+        $reserved = array_merge(
+            $languageConfig['reserve'] ?? [],
+            config('blasp.reserve', [])
+        );
+
+        foreach ($reserved as $word) {
+            if (!is_string($word)) {
+                continue;
+            }
+
+            $word = trim($word);
+
+            if ($word !== '') {
+                $words[] = $word;
+            }
+        }
+
+        return array_values(array_unique($words));
+    }
+
     private static function loadGlobalConfig(): array
     {
         return [
@@ -325,6 +355,7 @@ class Dictionary
                 'spanish' => new SpanishNormalizer(),
                 'german' => new GermanNormalizer(),
                 'french' => new FrenchNormalizer(),
+                'hindi', 'nepali' => new DevanagariNormalizer(),
                 default => new EnglishNormalizer(),
             };
         }
