@@ -13,6 +13,7 @@ All notable changes to `blasp` will be documented in this file
 - Homoglyph folding (`blasp.homoglyphs`, on by default): Cyrillic and Greek lookalikes, fullwidth letters and accented letters missing from the substitution table are folded before matching, so `fuсk` and `ｆｕｃｋ` are detected while the original text is what gets masked
 - `substitutions_append` config for merging an application's own characters into the default substitution table without copying it
 - Default substitutions for `7`/`+` → t, `1` → l and `2` → z
+- `symfony/polyfill-intl-normalizer` is now a dependency, so accent folding works without ext-intl
 
 ### Fixed
 - A space in a phrase entry (`sieg heil`, `blow job`) now matches any separator or none, so `sieg-heil` and `siegheil` are detected
